@@ -3,7 +3,7 @@ db:
   port: 5432
   username: postgres
   password: postgres
-  dbname: postgres
+  dbname: bigbrother
   sslmode: disable
 web:
   port: 3000
