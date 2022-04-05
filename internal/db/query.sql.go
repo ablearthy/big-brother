@@ -55,6 +55,18 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getCountOfUsedInviteCodes = `-- name: GetCountOfUsedInviteCodes :one
+SELECT count(*) FROM users
+WHERE inviter_id = $1
+`
+
+func (q *Queries) GetCountOfUsedInviteCodes(ctx context.Context, inviterID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getCountOfUsedInviteCodes, inviterID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, username, password, inviter_id FROM users
 WHERE id = $1 LIMIT 1
