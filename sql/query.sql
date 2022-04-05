@@ -21,3 +21,7 @@ INSERT INTO invite_codes (
     $1, $2
 )
 RETURNING *;
+
+-- name: GetCountOfUsedInviteCodes :one
+SELECT count(*) FROM users
+WHERE inviter_id = $1;
