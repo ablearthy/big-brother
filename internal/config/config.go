@@ -15,7 +15,8 @@ type DbConfig struct {
 }
 
 type ServerConfig struct {
-	Port int `yaml:"port"`
+	Port          int    `yaml:"port"`
+	CookiesSecret string `yaml:"cookiesSecret"`
 }
 
 type Config struct {
