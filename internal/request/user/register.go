@@ -1,6 +1,7 @@
 package user
 
 import (
+	"big-brother/internal/utils/validator"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -14,29 +15,13 @@ type CreateUserRequest struct {
 
 type CreateUserRequestValidator struct{}
 
-func isPunct(ch rune) bool {
-	return ('!' <= ch && ch <= '/') || (':' <= ch && ch <= '@') || ('[' <= ch && ch <= '`') || ('{' <= ch && ch <= '~')
-}
-
-func isDigit(ch rune) bool {
-	return '0' <= ch && ch <= '9'
-}
-
-func isUpperLatin(ch rune) bool {
-	return 'A' <= ch && ch <= 'Z'
-}
-
-func isLowerLatin(ch rune) bool {
-	return 'a' <= ch && ch <= 'z'
-}
-
 func (_ *CreateUserRequestValidator) validateUsername(username string) error {
 	runeUsername := []rune(username)
 	usernameLength := len(runeUsername)
 	containsLegalCharacters := true
 
 	for _, v := range runeUsername {
-		if !(isDigit(v) || isLowerLatin(v)) {
+		if !(validator.IsDigit(v) || validator.IsLowerLatin(v)) {
 			containsLegalCharacters = false
 		}
 	}
@@ -64,9 +49,9 @@ func (_ *CreateUserRequestValidator) validatePassword(password string) error {
 
 	for _, v := range runePassword {
 		switch {
-		case isPunct(v) || isUpperLatin(v) || isDigit(v):
+		case validator.IsPunct(v) || validator.IsUpperLatin(v) || validator.IsDigit(v):
 			containsOnlyLowerLatin = false
-		case !isLowerLatin(v):
+		case !validator.IsLowerLatin(v):
 			containsIllegalCharacters = true
 		}
 	}
@@ -89,7 +74,7 @@ func (_ *CreateUserRequestValidator) validateInviteCode(inviteCode string) error
 	validInviteCode := true
 
 	for _, v := range runeInviteCode {
-		if !(isLowerLatin(v) || isUpperLatin(v)) {
+		if !(validator.IsLowerLatin(v) || validator.IsUpperLatin(v)) {
 			validInviteCode = false
 		}
 	}
