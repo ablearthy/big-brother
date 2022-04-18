@@ -7,6 +7,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"math/rand"
 	"net/http"
@@ -46,6 +48,9 @@ func run() error {
 	rand.Seed(time.Now().UnixNano())
 
 	e := echo.New()
+
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cfg.Server.CookiesSecret))))
+
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
