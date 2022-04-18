@@ -25,3 +25,7 @@ RETURNING *;
 -- name: GetCountOfUsedInviteCodes :one
 SELECT count(*) FROM users
 WHERE inviter_id = $1;
+
+-- name: GetUserByUsername :one
+SELECT id, password FROM users
+WHERE username = $1;
