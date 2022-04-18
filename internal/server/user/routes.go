@@ -9,5 +9,10 @@ import (
 
 func SetUserGroup(e *echo.Group) {
 	cuh := user.CreateUserHandler{CreateUserService: &svc.CreateUserService{}, Validator: &req.CreateUserRequestValidator{}}
+	luh := user.LoginUserHandler{
+		LoginUserService: &svc.LoginUserService{},
+		Validator:        &req.UserLoginRequestValidator{},
+	}
 	e.POST("/create", cuh.CreateUser)
+	e.POST("/login", luh.Login)
 }
