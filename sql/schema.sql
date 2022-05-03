@@ -11,3 +11,9 @@ CREATE TABLE invite_codes (
     invite_code varchar (10) UNIQUE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE user_tokens (
+    user_id SERIAL PRIMARY KEY,
+    access_token VARCHAR (100),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
