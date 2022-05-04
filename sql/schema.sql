@@ -17,3 +17,8 @@ CREATE TABLE user_tokens (
     access_token VARCHAR (100),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE vk_tokens (
+    access_token varchar (100) PRIMARY KEY,
+    vk_user_id INTEGER NOT NULL
+);

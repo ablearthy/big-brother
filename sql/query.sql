@@ -29,3 +29,32 @@ WHERE inviter_id = $1;
 -- name: GetUserByUsername :one
 SELECT id, password FROM users
 WHERE username = $1;
+
+-- name: GetTokenById :one
+SELECT access_token FROM user_tokens
+WHERE user_id = $1;
+
+-- name: DeleteTokenById :one
+DELETE FROM user_tokens WHERE user_id = $1
+RETURNING *;
+
+-- name: CreateUserToken :one
+INSERT INTO user_tokens (
+    user_id, access_token
+) VALUES (
+    $1, $2
+)
+RETURNING *;
+
+-- name: CreateVkToken :one
+INSERT INTO vk_tokens (
+    access_token, vk_user_id
+) VALUES (
+    $1, $2
+)
+RETURNING *;
+
+-- name: GetVkToken :one
+SELECT access_token, vk_user_id
+FROM vk_tokens
+WHERE access_token = $1;
