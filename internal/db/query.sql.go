@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createInviteCode = `-- name: CreateInviteCode :one
@@ -57,6 +58,60 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createUserToken = `-- name: CreateUserToken :one
+INSERT INTO user_tokens (
+    user_id, access_token
+) VALUES (
+    $1, $2
+)
+RETURNING user_id, access_token
+`
+
+type CreateUserTokenParams struct {
+	UserID      int32
+	AccessToken sql.NullString
+}
+
+func (q *Queries) CreateUserToken(ctx context.Context, arg CreateUserTokenParams) (UserToken, error) {
+	row := q.db.QueryRow(ctx, createUserToken, arg.UserID, arg.AccessToken)
+	var i UserToken
+	err := row.Scan(&i.UserID, &i.AccessToken)
+	return i, err
+}
+
+const createVkToken = `-- name: CreateVkToken :one
+INSERT INTO vk_tokens (
+    access_token, vk_user_id
+) VALUES (
+    $1, $2
+)
+RETURNING access_token, vk_user_id
+`
+
+type CreateVkTokenParams struct {
+	AccessToken string
+	VkUserID    int32
+}
+
+func (q *Queries) CreateVkToken(ctx context.Context, arg CreateVkTokenParams) (VkToken, error) {
+	row := q.db.QueryRow(ctx, createVkToken, arg.AccessToken, arg.VkUserID)
+	var i VkToken
+	err := row.Scan(&i.AccessToken, &i.VkUserID)
+	return i, err
+}
+
+const deleteTokenById = `-- name: DeleteTokenById :one
+DELETE FROM user_tokens WHERE user_id = $1
+RETURNING user_id, access_token
+`
+
+func (q *Queries) DeleteTokenById(ctx context.Context, userID int32) (UserToken, error) {
+	row := q.db.QueryRow(ctx, deleteTokenById, userID)
+	var i UserToken
+	err := row.Scan(&i.UserID, &i.AccessToken)
+	return i, err
+}
+
 const getCountOfUsedInviteCodes = `-- name: GetCountOfUsedInviteCodes :one
 SELECT count(*) FROM users
 WHERE inviter_id = $1
@@ -67,6 +122,18 @@ func (q *Queries) GetCountOfUsedInviteCodes(ctx context.Context, inviterID int32
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getTokenById = `-- name: GetTokenById :one
+SELECT access_token FROM user_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTokenById(ctx context.Context, userID int32) (sql.NullString, error) {
+	row := q.db.QueryRow(ctx, getTokenById, userID)
+	var access_token sql.NullString
+	err := row.Scan(&access_token)
+	return access_token, err
 }
 
 const getUser = `-- name: GetUser :one
@@ -113,4 +180,17 @@ func (q *Queries) GetUserIdByInviteCode(ctx context.Context, inviteCode string) 
 	var user_id int32
 	err := row.Scan(&user_id)
 	return user_id, err
+}
+
+const getVkToken = `-- name: GetVkToken :one
+SELECT access_token, vk_user_id
+FROM vk_tokens
+WHERE access_token = $1
+`
+
+func (q *Queries) GetVkToken(ctx context.Context, accessToken string) (VkToken, error) {
+	row := q.db.QueryRow(ctx, getVkToken, accessToken)
+	var i VkToken
+	err := row.Scan(&i.AccessToken, &i.VkUserID)
+	return i, err
 }

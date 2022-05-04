@@ -24,3 +24,8 @@ type UserToken struct {
 	UserID      int32
 	AccessToken sql.NullString
 }
+
+type VkToken struct {
+	AccessToken string
+	VkUserID    int32
+}
