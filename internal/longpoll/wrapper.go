@@ -18,18 +18,18 @@ func (lpmw *LongPollManagerWrapper) Run() {
 	lpmw.lpm.Run()
 }
 
-func (lpmw *LongPollManagerWrapper) AddNewToken(token AccessToken) {
-	lpmw.lpm.acceptNewTokenCh <- token
+func (lpmw *LongPollManagerWrapper) AddNewToken(mtr ManageTokenRequest) {
+	lpmw.lpm.acceptNewTokenCh <- mtr
 }
 
-func (lpmw *LongPollManagerWrapper) DeleteToken(token AccessToken) {
-	lpmw.lpm.deleteTokenCh <- token
+func (lpmw *LongPollManagerWrapper) DeleteToken(mtr ManageTokenRequest) {
+	lpmw.lpm.deleteTokenCh <- mtr
 }
 
-func (lpmw *LongPollManagerWrapper) TokenIsAlive(token AccessToken) <-chan bool {
+func (lpmw *LongPollManagerWrapper) TokenIsAlive(vkUserId VkUserId) <-chan bool {
 	ch := make(chan bool)
 
-	lpmw.lpm.isAliveCh <- StatusRequest{token, ch}
+	lpmw.lpm.isAliveCh <- StatusRequest{vkUserId, ch}
 
 	return ch
 }

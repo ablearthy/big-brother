@@ -7,51 +7,63 @@ import (
 )
 
 type AccessToken string
+type VkUserId int32
+
+type ManageTokenRequest struct {
+	AccessToken AccessToken
+	VkUserId    VkUserId
+}
 
 type StatusRequest struct {
-	at  AccessToken
-	bCh chan<- bool
+	vkUserId VkUserId
+	bCh      chan<- bool
+}
+
+type LongPoll struct {
+	lp      *sdklp.LongPoll
+	counter uint32
 }
 
 type longPollManager struct {
-	clients          map[AccessToken]*sdklp.LongPoll
-	acceptNewTokenCh chan AccessToken
-	deleteTokenCh    chan AccessToken
+	clients          map[VkUserId]*LongPoll
+	acceptNewTokenCh chan ManageTokenRequest
+	deleteTokenCh    chan ManageTokenRequest
 	isAliveCh        chan StatusRequest
 	publisherCh      chan<- publisherData
 }
 
 func initLongPollManager(publisher chan<- publisherData) *longPollManager {
 	return &longPollManager{
-		clients:          make(map[AccessToken]*sdklp.LongPoll),
-		acceptNewTokenCh: make(chan AccessToken),
-		deleteTokenCh:    make(chan AccessToken),
+		clients:          make(map[VkUserId]*LongPoll),
+		acceptNewTokenCh: make(chan ManageTokenRequest),
+		deleteTokenCh:    make(chan ManageTokenRequest),
 		isAliveCh:        make(chan StatusRequest),
 		publisherCh:      publisher,
 	}
 }
 
-func (lpm *longPollManager) AddNewToken(token AccessToken) {
-	lpm.acceptNewTokenCh <- token
+func (lpm *longPollManager) AddNewToken(mtr ManageTokenRequest) {
+	lpm.acceptNewTokenCh <- mtr
 }
 
-func (lpm *longPollManager) DeleteToken(token AccessToken) {
-	lpm.deleteTokenCh <- token
+func (lpm *longPollManager) DeleteToken(mtr ManageTokenRequest) {
+	lpm.deleteTokenCh <- mtr
 }
 
-func (lpm *longPollManager) TokenIsAlive(token AccessToken) <-chan bool {
+func (lpm *longPollManager) TokenIsAlive(vkUserId VkUserId) <-chan bool {
 	ch := make(chan bool)
 
-	lpm.isAliveCh <- StatusRequest{token, ch}
+	lpm.isAliveCh <- StatusRequest{vkUserId, ch}
 
 	return ch
 }
 
-func (lpm *longPollManager) registerNewToken(token AccessToken) {
-	if _, ok := lpm.clients[token]; ok {
+func (lpm *longPollManager) registerNewToken(mtr ManageTokenRequest) {
+	if v, ok := lpm.clients[mtr.VkUserId]; ok {
+		v.counter += 1
 		return
 	}
-	vk := api.NewVK(string(token))
+	vk := api.NewVK(string(mtr.AccessToken))
 	lp, err := sdklp.NewLongPoll(vk, 2)
 	if err != nil {
 		return
@@ -60,36 +72,43 @@ func (lpm *longPollManager) registerNewToken(token AccessToken) {
 	go func() {
 		lp.FullResponse(func(obj object.LongPollResponse) {
 			lpm.publisherCh <- publisherData{
-				at:  token,
-				obj: obj,
+				vkUserId: mtr.VkUserId,
+				obj:      obj,
 			}
 		})
 		lp.Run()
+		lpm.DeleteToken(mtr)
 	}()
-	lpm.clients[token] = lp
+	lpm.clients[mtr.VkUserId] = &LongPoll{
+		lp:      lp,
+		counter: 1,
+	}
 }
 
-func (lpm *longPollManager) deleteToken(token AccessToken) {
-	lp, ok := lpm.clients[token]
+func (lpm *longPollManager) deleteToken(mtr ManageTokenRequest) {
+	lp, ok := lpm.clients[mtr.VkUserId]
 	if !ok {
 		return
 	}
-	lp.Shutdown()
-	delete(lpm.clients, token)
+	lp.counter -= 1
+	if lp.counter == 0 {
+		lp.lp.Shutdown()
+		delete(lpm.clients, mtr.VkUserId)
+	}
 }
 
 func (lpm *longPollManager) sendAliveStatus(s *StatusRequest) {
-	_, ok := lpm.clients[s.at]
+	_, ok := lpm.clients[s.vkUserId]
 	s.bCh <- ok
 }
 
 func (lpm *longPollManager) Run() {
 	for {
 		select {
-		case newToken := <-lpm.acceptNewTokenCh:
-			lpm.registerNewToken(newToken)
-		case token := <-lpm.deleteTokenCh:
-			lpm.deleteToken(token)
+		case req := <-lpm.acceptNewTokenCh:
+			lpm.registerNewToken(req)
+		case req := <-lpm.deleteTokenCh:
+			lpm.deleteToken(req)
 		case s := <-lpm.isAliveCh:
 			lpm.sendAliveStatus(&s)
 		}

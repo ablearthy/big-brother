@@ -3,13 +3,13 @@ package longpoll
 type Response interface{}
 
 type publisherData struct {
-	at  AccessToken
-	obj Response
+	vkUserId VkUserId
+	obj      Response
 }
 
 type Subscriber struct {
-	Token AccessToken
-	Ch    chan Response
+	vkUserId VkUserId
+	Ch       chan Response
 }
 type longPollBroker struct {
 	subscribers   map[*Subscriber]struct{}
@@ -50,7 +50,7 @@ func (lpb *longPollBroker) Run() {
 			lpb.unsubscribe(s)
 		case msg := <-lpb.publisher:
 			for k := range lpb.subscribers {
-				if msg.at == k.Token {
+				if msg.vkUserId == k.vkUserId {
 					k.Ch <- msg.obj
 				}
 			}
