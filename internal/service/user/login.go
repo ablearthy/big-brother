@@ -4,8 +4,9 @@ import (
 	"big-brother/internal/db"
 	"big-brother/internal/request/user"
 	"context"
-	"golang.org/x/crypto/bcrypt"
 	"log"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginUserService struct{}
