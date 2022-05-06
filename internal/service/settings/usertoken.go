@@ -48,7 +48,7 @@ func (utss *UserTokenSetService) SetToken(userId int32, accessToken string) erro
 		return errors.New("internal error")
 	}
 
-	_, err = queries.CreateVkToken(context.Background(), db.CreateVkTokenParams{
+	err = queries.CreateVkToken(context.Background(), db.CreateVkTokenParams{
 		AccessToken: accessToken,
 		VkUserID:    vkUserId,
 	})
