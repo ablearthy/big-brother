@@ -79,13 +79,13 @@ func (q *Queries) CreateUserToken(ctx context.Context, arg CreateUserTokenParams
 	return i, err
 }
 
-const createVkToken = `-- name: CreateVkToken :one
+const createVkToken = `-- name: CreateVkToken :exec
 INSERT INTO vk_tokens (
     access_token, vk_user_id
 ) VALUES (
     $1, $2
 )
-RETURNING access_token, vk_user_id
+ON CONFLICT DO NOTHING
 `
 
 type CreateVkTokenParams struct {
@@ -93,11 +93,9 @@ type CreateVkTokenParams struct {
 	VkUserID    int32
 }
 
-func (q *Queries) CreateVkToken(ctx context.Context, arg CreateVkTokenParams) (VkToken, error) {
-	row := q.db.QueryRow(ctx, createVkToken, arg.AccessToken, arg.VkUserID)
-	var i VkToken
-	err := row.Scan(&i.AccessToken, &i.VkUserID)
-	return i, err
+func (q *Queries) CreateVkToken(ctx context.Context, arg CreateVkTokenParams) error {
+	_, err := q.db.Exec(ctx, createVkToken, arg.AccessToken, arg.VkUserID)
+	return err
 }
 
 const deleteTokenById = `-- name: DeleteTokenById :one
