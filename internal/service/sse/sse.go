@@ -11,6 +11,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	MIMETextEventStream = "text/event-stream"
+)
+
 type TransferLongPollMessagesService struct {
 }
 
@@ -40,8 +44,7 @@ func (*TransferLongPollMessagesService) Transfer(c echo.Context, userId int) err
 	ctx := c.Request().Context()
 
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-store")
-	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
-	c.Response().WriteHeader(http.StatusOK)
+	c.Response().Header().Set(echo.HeaderContentType, MIMETextEventStream)
 
 	select {
 	case <-ctx.Done():
