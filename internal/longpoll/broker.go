@@ -20,8 +20,10 @@ type longPollBroker struct {
 
 func initBroker(publisher <-chan publisherData) *longPollBroker {
 	return &longPollBroker{
-		subscribers: make(map[*Subscriber]struct{}),
-		publisher:   publisher,
+		subscribers:   make(map[*Subscriber]struct{}),
+		subscribeCh:   make(chan *Subscriber),
+		unsubscribeCh: make(chan *Subscriber),
+		publisher:     publisher,
 	}
 }
 
