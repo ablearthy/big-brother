@@ -46,13 +46,13 @@ INSERT INTO user_tokens (
 )
 RETURNING *;
 
--- name: CreateVkToken :one
+-- name: CreateVkToken :exec
 INSERT INTO vk_tokens (
     access_token, vk_user_id
 ) VALUES (
     $1, $2
 )
-RETURNING *;
+ON CONFLICT DO NOTHING;
 
 -- name: GetVkToken :one
 SELECT access_token, vk_user_id
