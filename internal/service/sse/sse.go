@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -69,12 +70,16 @@ func (*TransferLongPollMessagesService) Transfer(c echo.Context, userId int) err
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-store")
 	c.Response().Header().Set(echo.HeaderContentType, MIMETextEventStream)
 
-	select {
-	case <-ctx.Done():
-		return c.NoContent(http.StatusOK)
-	case msg := <-messageCh:
-		log.Println("New message: ", msg)
-
+	pingTicker := time.NewTicker(15 * time.Second)
+	for {
+		select {
+		case <-ctx.Done():
+			pingTicker.Stop()
+			return c.NoContent(http.StatusOK)
+		case msg := <-messageCh:
+			sendSSE(c.Response(), "message", msg)
+		case <-pingTicker.C:
+			sendSSE(c.Response(), "ping", struct{}{})
+		}
 	}
-	return c.NoContent(http.StatusOK)
 }
