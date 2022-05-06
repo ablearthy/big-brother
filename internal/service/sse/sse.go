@@ -5,7 +5,9 @@ import (
 	"big-brother/internal/db"
 	"big-brother/internal/longpoll"
 	"context"
-	"log"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -16,6 +18,27 @@ const (
 )
 
 type TransferLongPollMessagesService struct {
+}
+
+func sendSSE(w interface {
+	io.Writer
+	http.Flusher
+}, eventName string, data any) error {
+	_, err := fmt.Fprintf(w, "event: %s\ndata: ", eventName)
+	if err != nil {
+		return err
+	}
+	enc := json.NewEncoder(w)
+	err = enc.Encode(data)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(w, "\n")
+	if err != nil {
+		return err
+	}
+	w.Flush()
+	return nil
 }
 
 func (*TransferLongPollMessagesService) Transfer(c echo.Context, userId int) error {
