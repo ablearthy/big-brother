@@ -1,6 +1,7 @@
 package main
 
 import (
+	"big-brother/internal/background"
 	"big-brother/internal/config"
 	"big-brother/internal/db"
 	"big-brother/internal/server"
@@ -48,6 +49,9 @@ func run() error {
 
 	rand.Seed(time.Now().UnixNano())
 
+	background.InitLongPollManagerWrapper()
+	go background.GetLongPollManagerWrapper().Run()
+
 	e := echo.New()
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cfg.Server.CookiesSecret))))
@@ -56,6 +60,7 @@ func run() error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 	server.SetRoutes(e)
+
 	e.Logger.Fatal(e.Start(":3000"))
 	return nil
 }
