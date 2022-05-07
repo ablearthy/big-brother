@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"errors"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -48,5 +50,5 @@ func GetUserId(c echo.Context) (int, error) {
 	if userId, ok := sess.Values["userId"].(int); ok {
 		return userId, nil
 	}
-	return 0, nil
+	return 0, errors.New("userId does not exist")
 }
