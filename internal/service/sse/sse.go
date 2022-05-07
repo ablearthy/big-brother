@@ -59,11 +59,12 @@ func (*TransferLongPollMessagesService) Transfer(c echo.Context, userId int) err
 	lpmw := background.GetLongPollManagerWrapper()
 
 	messageCh := make(chan longpoll.Response)
-
-	lpmw.Subscribe(&longpoll.Subscriber{
+	sub := &longpoll.Subscriber{
 		VkUserId: longpoll.VkUserId(vt.VkUserID),
 		Ch:       messageCh,
-	})
+	}
+	lpmw.Subscribe(sub)
+	defer lpmw.Unsubscribe(sub)
 
 	ctx := c.Request().Context()
 
