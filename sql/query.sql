@@ -46,6 +46,13 @@ INSERT INTO user_tokens (
 )
 RETURNING *;
 
+-- name: GetAllUserTokens :many
+SELECT user_tokens.user_id,
+       user_tokens.access_token,
+       vk_tokens.vk_user_id
+FROM user_tokens
+LEFT JOIN vk_tokens ON user_tokens.access_token = vk_tokens.access_token;
+
 -- name: CreateVkToken :exec
 INSERT INTO vk_tokens (
     access_token, vk_user_id
