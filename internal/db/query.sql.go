@@ -110,6 +110,40 @@ func (q *Queries) DeleteTokenById(ctx context.Context, userID int32) (UserToken,
 	return i, err
 }
 
+const getAllUserTokens = `-- name: GetAllUserTokens :many
+SELECT user_tokens.user_id,
+       user_tokens.access_token,
+       vk_tokens.vk_user_id
+FROM user_tokens
+LEFT JOIN vk_tokens ON user_tokens.access_token = vk_tokens.access_token
+`
+
+type GetAllUserTokensRow struct {
+	UserID      int32
+	AccessToken sql.NullString
+	VkUserID    sql.NullInt32
+}
+
+func (q *Queries) GetAllUserTokens(ctx context.Context) ([]GetAllUserTokensRow, error) {
+	rows, err := q.db.Query(ctx, getAllUserTokens)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllUserTokensRow
+	for rows.Next() {
+		var i GetAllUserTokensRow
+		if err := rows.Scan(&i.UserID, &i.AccessToken, &i.VkUserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCountOfUsedInviteCodes = `-- name: GetCountOfUsedInviteCodes :one
 SELECT count(*) FROM users
 WHERE inviter_id = $1
