@@ -4,6 +4,7 @@ import (
 	"big-brother/internal/background"
 	"big-brother/internal/config"
 	"big-brother/internal/db"
+	"big-brother/internal/postinit"
 	"big-brother/internal/server"
 	"context"
 	"flag"
@@ -51,6 +52,8 @@ func run() error {
 
 	background.InitLongPollManagerWrapper()
 	go background.GetLongPollManagerWrapper().Run()
+
+	postinit.StartLongPollForAllUsers()
 
 	e := echo.New()
 
