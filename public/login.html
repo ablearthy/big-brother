@@ -1,0 +1,89 @@
+{{define "login"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BB | Login | Register</title>
+</head>
+
+<body>
+    <div id="container-wrapper">
+        <div id="container">
+            <div class="signup">
+                <div>USERNAME</div>
+                <input type="text" placeholder="john">
+                <div>PASSWORD</div>
+                <input type="password">
+                <div>PASSWORD (again)</div>
+                <input type="password">
+                <div>INVITE CODE</div>
+                <input type="text">
+                <div class="fill"></div>
+                <button>Sign Up</button>
+            </div>
+            <div class="login">
+                <div>USERNAME</div>
+                <input type="text" placeholder="john">
+                <div>PASSWORD</div>
+                <input type="password">
+                <div class="fill"></div>
+                <button>Log In</button>
+            </div>
+        </div>
+    </div>
+</body>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    #container-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        min-width: 100%;
+    }
+
+    #container {
+        display: flex;
+        gap: 10px;
+    }
+
+    @media screen and (max-width: 650px) {
+        #container {
+            flex-direction: column;
+        }
+        .fill {
+            flex: 0 !important;
+        }
+        .signup {
+            margin-bottom: 30px;
+        }
+    }
+
+    .login,
+    .signup {
+        display: flex;
+        flex-direction: column;
+        height: 230px;
+    }
+
+    .login input {
+        margin-bottom: 10px;
+    }
+
+    .signup input {
+        margin-bottom: 5px;
+    }
+
+    .fill {
+        flex: 1;
+    }
+</style>
+
+</html>
+{{end}}
