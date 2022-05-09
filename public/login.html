@@ -12,26 +12,26 @@
 <body>
     <div id="container-wrapper">
         <div id="container">
-            <div class="signup">
+            <form class="signup" id="signup_form">
                 <div>USERNAME</div>
-                <input type="text" placeholder="john">
+                <input type="text" name="username" placeholder="john" minlength="4" maxlength="16" required>
                 <div>PASSWORD</div>
-                <input type="password">
+                <input type="password" name="password" required>
                 <div>PASSWORD (again)</div>
-                <input type="password">
+                <input type="password" name="password2" required>
                 <div>INVITE CODE</div>
-                <input type="text">
+                <input type="text" name="invite_code" required>
                 <div class="fill"></div>
                 <button>Sign Up</button>
-            </div>
-            <div class="login">
+            </form>
+            <form class="login" id="login_form">
                 <div>USERNAME</div>
-                <input type="text" placeholder="john">
+                <input type="text" placeholder="john" name="username" required>
                 <div>PASSWORD</div>
-                <input type="password">
+                <input type="password" name="password" required>
                 <div class="fill"></div>
                 <button>Log In</button>
-            </div>
+            </form>
         </div>
     </div>
 </body>
@@ -70,6 +70,7 @@
         display: flex;
         flex-direction: column;
         height: 230px;
+        width: 100%;
     }
 
     .login input {
@@ -82,8 +83,106 @@
 
     .fill {
         flex: 1;
+        color: red;
+        overflow-wrap: break-word;
     }
 </style>
+<script>
+    function signupHandler(ev) {
+        ev.preventDefault();
+        const data = new FormData(ev.target);
+        const username = data.get("username");
+        const password = data.get("password");
+        const password2 = data.get("password2");
+        const inviteCode = data.get("invite_code");
+
+        var fillEl = ev.target.querySelector(".fill");
+
+        if (username.length < 4) {
+            fillEl.textContent = "the username is too small";
+            return;
+        }
+        if (username.length > 16) {
+            fillEl.textContent = "the username is too big";
+            return;
+        }
+
+        if (password != password2) {
+            fillEl.textContent = "passwords don't match!";
+            return;
+        }
+
+        fetch("/user/create", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'username': username,
+                'password': password,
+                'invite_code': inviteCode
+            })
+        })
+        .then(r => r.json().then(data => [r.status, data]))
+        .then(function (e) {
+            var [status, data] = e;
+            console.log("ok");
+            if (status != 200) {
+                fillEl.textContent = `error: ${data['message']}`;
+                return;
+            }
+            fillEl.style.color = 'green';
+            fillEl.textContent = "success! now you can log in";
+        })
+        .catch(function (e) {
+            fillEl.textContent = "an error occured while making request. try again...";
+        });
+    }
+
+    const signupForm = document.forms.signup_form;
+    signupForm.addEventListener('submit', signupHandler);
+
+
+    function loginHandler(ev) {
+        ev.preventDefault();
+        const data = new FormData(ev.target);
+
+        const username = data.get("username");
+        const password = data.get("password");
+
+        var fillEl = ev.target.querySelector(".fill");
+
+        fetch("/user/login", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'username': username,
+                'password': password
+            })
+        })
+        .then(function (r) {
+            if (r.status != 200) {
+                fillEl.style.color = 'red';
+                fillEl.textContent = "unable to log in. try again...";
+            } else {
+                fillEl.style.color = 'green';
+                fillEl.textContent = "success!";
+
+                window.location.href = '/';
+            }
+        })
+        .catch(function(e) {
+            fillEl.style.color = 'red';
+            fillEl.textContent = "an error occured while making request. try again...";
+        });
+
+    }
+
+    const loginForm = document.forms.login_form;
+    loginForm.addEventListener('submit', loginHandler);
+</script>
 
 </html>
 {{end}}
