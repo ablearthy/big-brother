@@ -6,11 +6,12 @@ import (
 	"big-brother/internal/db"
 	"big-brother/internal/postinit"
 	"big-brother/internal/server"
+	mytemplate "big-brother/internal/template"
 	"context"
 	"flag"
 	"fmt"
+	"html/template"
 	"math/rand"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -55,13 +56,15 @@ func run() error {
 
 	postinit.StartLongPollForAllUsers()
 
+	tmpl := &mytemplate.Template{
+		Templates: template.Must(template.ParseGlob("public/*.html")),
+	}
+
 	e := echo.New()
+	e.Renderer = tmpl
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cfg.Server.CookiesSecret))))
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
 	server.SetRoutes(e)
 
 	e.Logger.Fatal(e.Start(":3000"))
