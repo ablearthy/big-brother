@@ -3,9 +3,10 @@ package user
 import (
 	service "big-brother/internal/interface/user"
 	req "big-brother/internal/request/user"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 type CreateUserHandler struct {
@@ -27,5 +28,5 @@ func (cuh CreateUserHandler) CreateUser(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 }
