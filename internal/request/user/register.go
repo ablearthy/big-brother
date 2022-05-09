@@ -46,13 +46,19 @@ func (_ *CreateUserRequestValidator) validatePassword(password string) error {
 	runePassword := []rune(password)
 	passwordLength := len(runePassword)
 	containsOnlyLowerLatin := true
+	containsOnlyDigits := true
 	containsIllegalCharacters := false
 
 	for _, v := range runePassword {
 		switch {
-		case validator.IsPunct(v) || validator.IsUpperLatin(v) || validator.IsDigit(v):
+		case validator.IsPunct(v) || validator.IsUpperLatin(v):
 			containsOnlyLowerLatin = false
-		case !validator.IsLowerLatin(v):
+			containsOnlyDigits = false
+		case validator.IsDigit(v):
+			containsOnlyLowerLatin = false
+		case validator.IsLowerLatin(v):
+			containsOnlyDigits = false
+		default:
 			containsIllegalCharacters = true
 		}
 	}
@@ -64,7 +70,7 @@ func (_ *CreateUserRequestValidator) validatePassword(password string) error {
 		return errors.New("the password is too big")
 	}
 
-	if passwordLength < 8 || (containsOnlyLowerLatin && passwordLength < 16) {
+	if passwordLength < 8 || ((containsOnlyLowerLatin || containsOnlyDigits) && passwordLength < 16) {
 		return errors.New("the password is too small")
 	}
 	return nil
