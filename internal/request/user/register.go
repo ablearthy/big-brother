@@ -3,8 +3,9 @@ package user
 import (
 	"big-brother/internal/utils/validator"
 	"errors"
-	"github.com/labstack/echo/v4"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type CreateUserRequest struct {
