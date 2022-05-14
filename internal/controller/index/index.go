@@ -32,3 +32,11 @@ func (*IndexHandler) Home(c echo.Context) error {
 	}
 	return c.Render(http.StatusOK, "home", struct{}{})
 }
+
+func (*IndexHandler) Settings(c echo.Context) error {
+	_, err := auth.GetUserId(c)
+	if err != nil {
+		return c.Redirect(http.StatusFound, "/login")
+	}
+	return c.Render(http.StatusOK, "settings", struct{}{})
+}

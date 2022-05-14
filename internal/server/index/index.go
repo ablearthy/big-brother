@@ -12,4 +12,5 @@ func SetIndexGroup(e *echo.Echo) {
 	e.GET("/", ih.Index)
 	e.GET("/login", ih.Login)
 	e.GET("/home", ih.Home)
+	e.GET("/home/settings", ih.Settings)
 }
