@@ -7,6 +7,8 @@ type publisherData struct {
 	obj      Response
 }
 
+const SUBSCRIBE_ALL = VkUserId(0)
+
 type Subscriber struct {
 	VkUserId VkUserId
 	Ch       chan Response
@@ -52,7 +54,10 @@ func (lpb *longPollBroker) Run() {
 			lpb.unsubscribe(s)
 		case msg := <-lpb.publisher:
 			for k := range lpb.subscribers {
-				if msg.vkUserId == k.VkUserId {
+				switch k.VkUserId {
+				case SUBSCRIBE_ALL:
+					k.Ch <- msg.obj
+				case msg.vkUserId:
 					k.Ch <- msg.obj
 				}
 			}
