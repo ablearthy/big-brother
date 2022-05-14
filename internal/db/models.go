@@ -6,7 +6,31 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
+
+	"github.com/jackc/pgtype"
 )
+
+type VkMessageEventType string
+
+const (
+	VkMessageEventTypeNew    VkMessageEventType = "new"
+	VkMessageEventTypeEdit   VkMessageEventType = "edit"
+	VkMessageEventTypeDelete VkMessageEventType = "delete"
+)
+
+func (e *VkMessageEventType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VkMessageEventType(s)
+	case string:
+		*e = VkMessageEventType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VkMessageEventType: %T", src)
+	}
+	return nil
+}
 
 type InviteCode struct {
 	UserID     int32
@@ -23,6 +47,20 @@ type User struct {
 type UserToken struct {
 	UserID      int32
 	AccessToken sql.NullString
+}
+
+type VkMessage struct {
+	ID        int32
+	OwnerID   int32
+	MessageID int32
+	Message   pgtype.JSONB
+}
+
+type VkMessageEvent struct {
+	ID                int32
+	InternalMessageID int32
+	MType             VkMessageEventType
+	CreatedAt         time.Time
 }
 
 type VkToken struct {
