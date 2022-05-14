@@ -1,0 +1,61 @@
+{{define "settings"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+</head>
+
+<body>
+    <input type="text" id="access_token">
+    <input type="submit" id="set_token_btn" value="Set token">
+    <input type="submit" id="remove_token_btn" value="Remove token">
+    <div id="message"></div>
+</body>
+<script>
+    let accessTokenInput = document.getElementById("access_token");
+    let setTokenBtn = document.getElementById("set_token_btn");
+    let removeTokenBtn = document.getElementById("remove_token_btn");
+    let messageElement = document.getElementById("message");
+
+    setTokenBtn.addEventListener("click", function (ev) {
+        let accessToken = accessTokenInput.value;
+        if (accessToken === "") {
+            messageElement.contentText = "enter the access token";
+            return;
+        }
+        fetch("/settings/usertoken/set", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ "access_token": accessToken })
+        }).then(r => {
+            if (r.status == 200) {
+                messageElement.textContent = "the access token is set";
+            } else {
+                messageElement.textContent = "unable to set access token. either delete token that already set or enter valid token";
+            }
+        });
+    })
+
+    removeTokenBtn.addEventListener("click", function (ev) {
+        fetch("/settings/usertoken/delete", {
+            method: "POST"
+        })
+            .then(r => {
+                if (r.ok) {
+                    messageElement.textContent = "the token successfully removed";
+                } else {
+                    messageElement.textContent = "an error occured while removing token";
+                }
+            });
+    })
+
+</script>
+
+</html>
+{{end}}
