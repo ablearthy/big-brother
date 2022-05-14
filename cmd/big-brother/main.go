@@ -4,6 +4,7 @@ import (
 	"big-brother/internal/background"
 	"big-brother/internal/config"
 	"big-brother/internal/db"
+	"big-brother/internal/longpoll"
 	"big-brother/internal/postinit"
 	"big-brother/internal/server"
 	mytemplate "big-brother/internal/template"
@@ -55,6 +56,15 @@ func run() error {
 	go background.GetLongPollManagerWrapper().Run()
 
 	postinit.StartLongPollForAllUsers()
+
+	background.InitDbLongPollSaver()
+
+	background.GetLongPollManagerWrapper().Subscribe(&longpoll.Subscriber{
+		VkUserId: longpoll.SUBSCRIBE_ALL,
+		Ch:       background.GetDbLongPollSaver().GetChannel(),
+	})
+
+	go background.GetDbLongPollSaver().Run()
 
 	tmpl := &mytemplate.Template{
 		Templates: template.Must(template.ParseGlob("public/*.html")),
