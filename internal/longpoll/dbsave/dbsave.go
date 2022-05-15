@@ -4,6 +4,7 @@ import (
 	"big-brother/internal/db"
 	"big-brother/internal/longpoll"
 	"context"
+	"database/sql"
 	"log"
 	"time"
 
@@ -47,10 +48,17 @@ func (dblps *DbLongPollSaver) Run() {
 				log.Println("DBSAVE: [edit]: an error occured while saving event:", err)
 			}
 		case longpoll.EventWrapper[longpoll.EventFriendOffline]:
-			log.Println("DBSAVE: [offline]:", v.UserId, v.Event.UserId)
+			log.Println("DBSAVE: [offline]:", v.UserId, v.Event.UserId, v.Event.Timestamp)
+			err := saveEventOffline(&v)
+			if err != nil {
+				log.Println("DBSAVE: [offline]: an error occured while saving event:", err)
+			}
 		case longpoll.EventWrapper[longpoll.EventFriendOnline]:
-			log.Println("DBSAVE: [online]:", v.UserId, v.Event.UserId, v.Event.Platform)
-
+			log.Println("DBSAVE: [online]:", v.UserId, v.Event.UserId, v.Event.Platform, v.Event.Timestamp)
+			err := saveEventOnline(&v)
+			if err != nil {
+				log.Println("DBSAVE: [online]: an error occured while saving event:", err)
+			}
 		}
 		log.Println("DBSAVE:", data)
 	}
@@ -167,6 +175,57 @@ func saveEventDeleteMessage(ev *longpoll.EventWrapper[longpoll.EventDeleteMessag
 		InternalMessageID: msgId,
 		MType:             db.VkMessageEventTypeDelete,
 		CreatedAt:         time.Now(),
+	})
+	return err
+}
+
+func saveEventOffline(ev *longpoll.EventWrapper[longpoll.EventFriendOffline]) error {
+	q := db.New(db.GetConn())
+	err := q.SaveActivityEvent(context.Background(), db.SaveActivityEventParams{
+		VkOwnerID: int32(ev.UserId),
+		TargetID:  int32(ev.Event.UserId),
+		Activity:  db.VkActivityOffline,
+		Platform:  db.VkPlatformWeb,
+		KickedByTimeout: sql.NullBool{
+			Bool:  ev.Event.KickedByTimeout,
+			Valid: true,
+		},
+		CreatedAt: ev.Event.Timestamp,
+	})
+	return err
+}
+
+func transformPlatform(platform int32) db.VkPlatform {
+	switch platform {
+	case 1:
+		return db.VkPlatformMobile
+	case 2:
+		return db.VkPlatformIphone
+	case 3:
+		return db.VkPlatformIpad
+	case 4:
+		return db.VkPlatformAndroid
+	case 5:
+		return db.VkPlatformWphone
+	case 6:
+		return db.VkPlatformWindows
+	default:
+		return db.VkPlatformWeb
+	}
+}
+
+func saveEventOnline(ev *longpoll.EventWrapper[longpoll.EventFriendOnline]) error {
+	q := db.New(db.GetConn())
+	err := q.SaveActivityEvent(context.Background(), db.SaveActivityEventParams{
+		VkOwnerID: int32(ev.UserId),
+		TargetID:  int32(ev.Event.UserId),
+		Activity:  db.VkActivityOnline,
+		Platform:  transformPlatform(ev.Event.Platform),
+		KickedByTimeout: sql.NullBool{
+			Bool:  false,
+			Valid: false,
+		},
+		CreatedAt: ev.Event.Timestamp,
 	})
 	return err
 }
