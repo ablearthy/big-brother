@@ -8,6 +8,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
+
+	"github.com/jackc/pgtype"
 )
 
 const createInviteCode = `-- name: CreateInviteCode :one
@@ -156,6 +159,24 @@ func (q *Queries) GetCountOfUsedInviteCodes(ctx context.Context, inviterID int32
 	return count, err
 }
 
+const getLastSavedVKMessage = `-- name: GetLastSavedVKMessage :one
+SELECT max(id)
+FROM vk_messages
+WHERE vk_owner_id = $1 AND message_id = $2
+`
+
+type GetLastSavedVKMessageParams struct {
+	VkOwnerID int32
+	MessageID int32
+}
+
+func (q *Queries) GetLastSavedVKMessage(ctx context.Context, arg GetLastSavedVKMessageParams) (interface{}, error) {
+	row := q.db.QueryRow(ctx, getLastSavedVKMessage, arg.VkOwnerID, arg.MessageID)
+	var max interface{}
+	err := row.Scan(&max)
+	return max, err
+}
+
 const getTokenById = `-- name: GetTokenById :one
 SELECT access_token FROM user_tokens
 WHERE user_id = $1
@@ -225,4 +246,45 @@ func (q *Queries) GetVkToken(ctx context.Context, accessToken string) (VkToken, 
 	var i VkToken
 	err := row.Scan(&i.AccessToken, &i.VkUserID)
 	return i, err
+}
+
+const saveMessageEvent = `-- name: SaveMessageEvent :exec
+INSERT INTO vk_message_events (
+    internal_message_id, m_type, created_at
+) VALUES (
+    $1, $2, $3
+)
+`
+
+type SaveMessageEventParams struct {
+	InternalMessageID int32
+	MType             VkMessageEventType
+	CreatedAt         time.Time
+}
+
+func (q *Queries) SaveMessageEvent(ctx context.Context, arg SaveMessageEventParams) error {
+	_, err := q.db.Exec(ctx, saveMessageEvent, arg.InternalMessageID, arg.MType, arg.CreatedAt)
+	return err
+}
+
+const saveVkMessage = `-- name: SaveVkMessage :one
+INSERT INTO vk_messages (
+    vk_owner_id, message_id, message
+) VALUES (
+    $1, $2, $3
+)
+RETURNING id
+`
+
+type SaveVkMessageParams struct {
+	VkOwnerID int32
+	MessageID int32
+	Message   pgtype.JSONB
+}
+
+func (q *Queries) SaveVkMessage(ctx context.Context, arg SaveVkMessageParams) (int32, error) {
+	row := q.db.QueryRow(ctx, saveVkMessage, arg.VkOwnerID, arg.MessageID, arg.Message)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
