@@ -1,6 +1,9 @@
 package longpoll
 
 import (
+	"log"
+	"time"
+
 	"github.com/SevereCloud/vksdk/v2/api"
 	sdklp "github.com/SevereCloud/vksdk/v2/longpoll-user"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -64,16 +67,88 @@ func (lpm *longPollManager) registerNewToken(mtr ManageTokenRequest) {
 		return
 	}
 	vk := api.NewVK(string(mtr.AccessToken))
-	lp, err := sdklp.NewLongPoll(vk, 2)
+	lp, err := sdklp.NewLongPoll(vk, 234)
 	if err != nil {
 		return
 	}
 	lp.Goroutine(true)
 	go func() {
 		lp.FullResponse(func(obj object.LongPollResponse) {
-			lpm.publisherCh <- publisherData{
-				vkUserId: mtr.VkUserId,
-				obj:      obj,
+			for _, ev := range obj.Updates {
+				eventType := int(ev[0].(float64))
+				switch eventType {
+				case 2:
+					messageId := int(ev[1].(float64))
+					flags := int(ev[2].(float64))
+					if (flags & FLAG_DELETE_FOR_ALL) == 0 {
+						continue
+					}
+					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventDeleteMessage{
+						MessageId: messageId,
+					})
+					log.Println("Flags changed:", messageId, flags)
+				case 4:
+					messageId := int(ev[1].(float64))
+					fullMessage := new(MessagesGetByIDExtendedResponse)
+					err := lp.VK.RequestUnmarshal("messages.getById", fullMessage, api.Params{
+						"message_ids": []int{messageId},
+						"extended":    1,
+					})
+					if err != nil || fullMessage.Count != 1 {
+						log.Println("New message error!")
+						continue
+					}
+					message := Message{
+						Message:  fullMessage.Items[0],
+						Profiles: fullMessage.Profiles,
+						Groups:   fullMessage.Groups,
+					}
+					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventNewMessage{
+						MessageId: messageId,
+						Message:   message,
+					})
+					log.Println("New message:", messageId)
+				case 5:
+					messageId := int(ev[1].(float64))
+					fullMessage := new(MessagesGetByIDExtendedResponse)
+					err := lp.VK.RequestUnmarshal("messages.getById", fullMessage, api.Params{
+						"message_ids": []int{messageId},
+						"extended":    1,
+					})
+					if err != nil || fullMessage.Count != 1 {
+						log.Println("New message error!")
+						continue
+					}
+					message := Message{
+						Message:  fullMessage.Items[0],
+						Profiles: fullMessage.Profiles,
+						Groups:   fullMessage.Groups,
+					}
+					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventEditMessage{
+						MessageId: messageId,
+						Message:   message,
+					})
+					log.Println("Edit message:", messageId)
+				case 8:
+					userId := -int(ev[1].(float64))
+					platformType := int(ev[2].(float64))
+					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventFriendOnline{
+						UserId:    VkUserId(userId),
+						Platform:  int32(platformType),
+						Timestamp: time.Now(),
+					})
+					log.Println("User online:", userId, platformType)
+				case 9:
+					userId := -int(ev[1].(float64))
+					kickedByTimeout := int(ev[2].(float64)) != 0
+					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventFriendOffline{
+						UserId:          VkUserId(userId),
+						KickedByTimeout: kickedByTimeout,
+						Timestamp:       time.Now(),
+					})
+					log.Println("User offline:", userId, kickedByTimeout)
+				}
+				log.Println("Event:", ev)
 			}
 		})
 		lp.Run()
