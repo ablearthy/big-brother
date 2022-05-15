@@ -86,6 +86,9 @@ SELECT max(id)
 FROM vk_messages
 WHERE vk_owner_id = $1 AND message_id = $2;
 
+-- name: GetMessageById :one
+SELECT * FROM vk_messages WHERE id = $1;
+
 -- name: SaveActivityEvent :exec
 INSERT INTO vk_activity_events (
     vk_owner_id, target_id, activity, platform, kicked_by_timeout, created_at

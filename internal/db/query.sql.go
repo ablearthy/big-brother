@@ -177,6 +177,22 @@ func (q *Queries) GetLastSavedVKMessage(ctx context.Context, arg GetLastSavedVKM
 	return max, err
 }
 
+const getMessageById = `-- name: GetMessageById :one
+SELECT id, vk_owner_id, message_id, message FROM vk_messages WHERE id = $1
+`
+
+func (q *Queries) GetMessageById(ctx context.Context, id int32) (VkMessage, error) {
+	row := q.db.QueryRow(ctx, getMessageById, id)
+	var i VkMessage
+	err := row.Scan(
+		&i.ID,
+		&i.VkOwnerID,
+		&i.MessageID,
+		&i.Message,
+	)
+	return i, err
+}
+
 const getTokenById = `-- name: GetTokenById :one
 SELECT access_token FROM user_tokens
 WHERE user_id = $1
