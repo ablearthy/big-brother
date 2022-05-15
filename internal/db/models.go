@@ -51,7 +51,7 @@ type UserToken struct {
 
 type VkMessage struct {
 	ID        int32
-	OwnerID   int32
+	VkOwnerID int32
 	MessageID int32
 	Message   pgtype.JSONB
 }
