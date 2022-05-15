@@ -78,7 +78,45 @@ func (*TransferLongPollMessagesService) Transfer(c echo.Context, userId int) err
 			pingTicker.Stop()
 			return c.NoContent(http.StatusOK)
 		case msg := <-messageCh:
-			sendSSE(c.Response(), "message", msg)
+			switch v := msg.(type) {
+			case longpoll.EventWrapper[longpoll.EventDeleteMessage]:
+				queries := db.New(db.GetConn())
+				internalId, err := queries.GetLastSavedVKMessage(context.Background(), db.GetLastSavedVKMessageParams{
+					VkOwnerID: int32(v.UserId),
+					MessageID: int32(v.Event.MessageId),
+				})
+				if err != nil {
+					sendSSE(c.Response(), "delete_message", "error")
+					continue
+				}
+				if internalId == nil {
+					sendSSE(c.Response(), "delete_message", "error_no_content")
+					continue
+				}
+				msg, err := queries.GetMessageById(context.Background(), internalId.(int32))
+				if err != nil {
+					sendSSE(c.Response(), "delete_message", "error")
+					continue
+				}
+				var m any
+				err = json.Unmarshal(msg.Message.Bytes, &m)
+				if err != nil {
+					sendSSE(c.Response(), "delete_message", "error")
+					continue
+				}
+				sendSSE(c.Response(), "delete_message", struct {
+					FromID  int         `json:"from_id"`
+					Content interface{} `json:"content"`
+				}{
+					FromID:  int(msg.MessageID),
+					Content: m,
+				})
+
+			case longpoll.EventWrapper[longpoll.EventEditMessage]:
+				sendSSE(c.Response(), "edit_message", v.Event)
+			case longpoll.EventWrapper[longpoll.EventNewMessage]:
+				sendSSE(c.Response(), "new_message", v.Event)
+			}
 		case <-pingTicker.C:
 			sendSSE(c.Response(), "ping", struct{}{})
 		}
