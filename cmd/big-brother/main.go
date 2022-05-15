@@ -8,7 +8,6 @@ import (
 	"big-brother/internal/postinit"
 	"big-brother/internal/server"
 	mytemplate "big-brother/internal/template"
-	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -48,7 +47,7 @@ func run() error {
 		return err
 	}
 
-	defer db.GetConn().Close(context.Background())
+	defer db.GetConn().Close()
 
 	rand.Seed(time.Now().UnixNano())
 

@@ -4,17 +4,18 @@ import (
 	"big-brother/internal/config"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var conn *pgx.Conn
+var conn *pgxpool.Pool
 
 func Connect(cfg config.DbConfig) (err error) {
-	conn, err = pgx.Connect(context.Background(), getDbUrl(cfg))
+	conn, err = pgxpool.Connect(context.Background(), getDbUrl(cfg))
 	return
 }
 
-func GetConn() *pgx.Conn {
+func GetConn() *pgxpool.Pool {
 	return conn
 }
 
