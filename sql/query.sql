@@ -65,3 +65,23 @@ ON CONFLICT DO NOTHING;
 SELECT access_token, vk_user_id
 FROM vk_tokens
 WHERE access_token = $1;
+
+-- name: SaveVkMessage :one
+INSERT INTO vk_messages (
+    vk_owner_id, message_id, message
+) VALUES (
+    $1, $2, $3
+)
+RETURNING id;
+
+-- name: SaveMessageEvent :exec
+INSERT INTO vk_message_events (
+    internal_message_id, m_type, created_at
+) VALUES (
+    $1, $2, $3
+);
+
+-- name: GetLastSavedVKMessage :one
+SELECT max(id)
+FROM vk_messages
+WHERE vk_owner_id = $1 AND message_id = $2;
