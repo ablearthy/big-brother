@@ -132,19 +132,21 @@ func (lpm *longPollManager) registerNewToken(mtr ManageTokenRequest) {
 				case 8:
 					userId := -int(ev[1].(float64))
 					platformType := int(ev[2].(float64))
+					timestamp := time.Unix(int64(ev[3].(float64)), 0)
 					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventFriendOnline{
 						UserId:    VkUserId(userId),
 						Platform:  int32(platformType),
-						Timestamp: time.Now(),
+						Timestamp: timestamp,
 					})
 					log.Println("User online:", userId, platformType)
 				case 9:
 					userId := -int(ev[1].(float64))
 					kickedByTimeout := int(ev[2].(float64)) != 0
+					timestamp := time.Unix(int64(ev[3].(float64)), 0)
 					lpm.publisherCh <- formPublisherData(mtr.VkUserId, EventFriendOffline{
 						UserId:          VkUserId(userId),
 						KickedByTimeout: kickedByTimeout,
-						Timestamp:       time.Now(),
+						Timestamp:       timestamp,
 					})
 					log.Println("User offline:", userId, kickedByTimeout)
 				}
