@@ -25,7 +25,7 @@ CREATE TABLE vk_tokens (
 
 CREATE TABLE vk_messages (
     id SERIAL PRIMARY KEY,
-    owner_id INTEGER NOT NULL REFERENCES users (id),
+    vk_owner_id INTEGER NOT NULL,
     message_id INTEGER NOT NULL,
     message JSONB
 );
