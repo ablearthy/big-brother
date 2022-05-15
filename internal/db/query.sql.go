@@ -248,6 +248,35 @@ func (q *Queries) GetVkToken(ctx context.Context, accessToken string) (VkToken, 
 	return i, err
 }
 
+const saveActivityEvent = `-- name: SaveActivityEvent :exec
+INSERT INTO vk_activity_events (
+    vk_owner_id, target_id, activity, platform, kicked_by_timeout, created_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+`
+
+type SaveActivityEventParams struct {
+	VkOwnerID       int32
+	TargetID        int32
+	Activity        VkActivity
+	Platform        VkPlatform
+	KickedByTimeout sql.NullBool
+	CreatedAt       time.Time
+}
+
+func (q *Queries) SaveActivityEvent(ctx context.Context, arg SaveActivityEventParams) error {
+	_, err := q.db.Exec(ctx, saveActivityEvent,
+		arg.VkOwnerID,
+		arg.TargetID,
+		arg.Activity,
+		arg.Platform,
+		arg.KickedByTimeout,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const saveMessageEvent = `-- name: SaveMessageEvent :exec
 INSERT INTO vk_message_events (
     internal_message_id, m_type, created_at

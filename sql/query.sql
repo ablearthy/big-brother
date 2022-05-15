@@ -85,3 +85,10 @@ INSERT INTO vk_message_events (
 SELECT max(id)
 FROM vk_messages
 WHERE vk_owner_id = $1 AND message_id = $2;
+
+-- name: SaveActivityEvent :exec
+INSERT INTO vk_activity_events (
+    vk_owner_id, target_id, activity, platform, kicked_by_timeout, created_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+);
