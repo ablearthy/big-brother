@@ -4,6 +4,7 @@ import (
 	"big-brother/internal/controller/user"
 	req "big-brother/internal/request/user"
 	svc "big-brother/internal/service/user"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -13,6 +14,11 @@ func SetUserGroup(e *echo.Group) {
 		LoginUserService: &svc.LoginUserService{},
 		Validator:        &req.UserLoginRequestValidator{},
 	}
+	lmeh := user.LastMessageEventHandler{
+		Service:   &svc.LastMessageEventService{},
+		Validator: &req.LastMessageEventRequestValidator{},
+	}
 	e.POST("/create", cuh.CreateUser)
 	e.POST("/login", luh.Login)
+	e.POST("/event", lmeh.GetMessageEvents)
 }
