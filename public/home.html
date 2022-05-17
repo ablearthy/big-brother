@@ -98,7 +98,11 @@
         var element = document.createElement("div");
         element.classList.add("message__content");
 
-        element.textContent = message.text.replace(/\n/g, "<br/>");
+        for (const line of message.text.split(/\r?\n/)) {
+            var textBlock = document.createElement("div");
+            textBlock.textContent = line;
+            element.appendChild(textBlock);
+        }
 
         if (message.attachments.length == 0) {
             return element;
