@@ -159,6 +159,47 @@ func (q *Queries) GetCountOfUsedInviteCodes(ctx context.Context, inviterID int32
 	return count, err
 }
 
+const getLastMessages = `-- name: GetLastMessages :many
+SELECT vk_message_events.id, m_type, msgs.message
+FROM vk_message_events
+LEFT JOIN vk_messages msgs ON internal_message_id = msgs.id
+WHERE vk_owner_id = $1 AND vk_message_events.id < $2
+ORDER BY vk_message_events.id DESC
+LIMIT $3
+`
+
+type GetLastMessagesParams struct {
+	VkOwnerID int32
+	ID        int32
+	Limit     int32
+}
+
+type GetLastMessagesRow struct {
+	ID      int32
+	MType   VkMessageEventType
+	Message pgtype.JSONB
+}
+
+func (q *Queries) GetLastMessages(ctx context.Context, arg GetLastMessagesParams) ([]GetLastMessagesRow, error) {
+	rows, err := q.db.Query(ctx, getLastMessages, arg.VkOwnerID, arg.ID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLastMessagesRow
+	for rows.Next() {
+		var i GetLastMessagesRow
+		if err := rows.Scan(&i.ID, &i.MType, &i.Message); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLastSavedVKMessage = `-- name: GetLastSavedVKMessage :one
 SELECT max(id)
 FROM vk_messages
@@ -262,6 +303,20 @@ func (q *Queries) GetVkToken(ctx context.Context, accessToken string) (VkToken, 
 	var i VkToken
 	err := row.Scan(&i.AccessToken, &i.VkUserID)
 	return i, err
+}
+
+const getVkUserIdByUserId = `-- name: GetVkUserIdByUserId :one
+SELECT vk_tokens.vk_user_id
+FROM user_tokens
+LEFT JOIN vk_tokens ON user_tokens.access_token = vk_tokens.access_token
+WHERE user_tokens.user_id = $1
+`
+
+func (q *Queries) GetVkUserIdByUserId(ctx context.Context, userID int32) (sql.NullInt32, error) {
+	row := q.db.QueryRow(ctx, getVkUserIdByUserId, userID)
+	var vk_user_id sql.NullInt32
+	err := row.Scan(&vk_user_id)
+	return vk_user_id, err
 }
 
 const saveActivityEvent = `-- name: SaveActivityEvent :exec
