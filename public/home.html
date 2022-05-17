@@ -28,68 +28,156 @@
             </div>
         </div>
         <main>
-            <div class="message_container">
-                <div class="color"></div>
-                <div class="avatar">
-                    <img src="https://vk.com/images/camera_50.png"
-                        alt="Vladimir Lenin">
-                </div>
-                <div class="message">
-                    <div class="message__header">
-                        <span class="name">Vladimir Lenin</span>
-                        <span class="date">18:05:20 16/05/2022</span>
-                        <span class="chat">Имя чата</span>
-                    </div>
-                    <div class="message__content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras interdum, tortor egestas convallis
-                        pretium, lacus ipsum facilisis dolor, eget pretium est orci non leo. Mauris quis ipsum sed
-                        tellus auctor imperdiet in in urna. Aliquam sit amet accumsan nibh. Pellentesque posuere, magna
-                        id tempor efficitur, enim leo aliquet nulla, ac facilisis justo risus in purus. Sed mollis
-                        euismod eros ac venenatis. Aliquam quis maximus metus, nec fringilla ante. Duis sit amet magna
-                        sed mi pharetra eleifend. Sed vel nisi nunc. Vestibulum ante enim, sodales eget leo eu, feugiat
-                        lacinia nunc. <br>
-                        Praesent venenatis eu lectus rutrum dictum. Nam orci magna, rhoncus sit amet porta ac, cursus
-                        sed eros. Praesent suscipit ante laoreet nibh laoreet, vel condimentum turpis suscipit.
-                        Vestibulum tincidunt semper purus commodo pellentesque. Phasellus eget metus nec leo bibendum
-                        dignissim. In semper venenatis rhoncus. Integer ipsum est, fermentum eget rhoncus a, viverra
-                        eget tortor. Morbi convallis congue suscipit. Ut ultrices hendrerit efficitur. Nulla facilisi.
-                        Sed nec sem ac orci eleifend bibendum vitae eu magna. Donec a ante a ligula posuere iaculis. Sed
-                        et odio ut urna consectetur rhoncus. Quisque semper viverra justo ut faucibus. Suspendisse
-                        ultricies purus et dui ultricies pulvinar. Mauris finibus malesuada suscipit. <br>
-                        Aenean pulvinar, justo vel dapibus consequat, risus urna egestas est, id blandit nulla lacus ut
-                        nisi. Nulla facilisi. Phasellus viverra ipsum ut sagittis aliquam. Curabitur ut enim id est
-                        venenatis laoreet at non felis. In hac habitasse platea dictumst. Pellentesque sed orci pretium,
-                        posuere elit nec, luctus lectus. Fusce tincidunt tellus odio, ac pellentesque sapien volutpat
-                        at. Cras odio augue, accumsan et maximus sit amet, laoreet in felis. Curabitur semper tincidunt
-                        aliquam. Vestibulum a pulvinar purus. Duis vel tellus libero. Donec ut odio vel justo fringilla
-                        egestas. <br>
-                        <div class="attachments">Вложения</div>
-                        <div class="attachments_content">
-                            <div class="attachments_content_container">
-                                <div>
-                                    <img src="https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png"
-                                        alt="">
-                                </div>
-                                <div>
-                                    <img src="https://oboi.ws/filters/vibrance_11_6288_oboi_polosataja_koshka_1280x1024.jpg"
-                                        alt="">
-                                </div>
-                                <div>
-                                    <img src="http://pm1.narvii.com/7881/b72afc82e708932a5a5bf8216a48f38e4c13ac8cr1-1366-2048v2_uhq.jpg"
-                                        alt="">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="messages">
             </div>
-
+            <div id="load_more">
+                Load more...
+            </div>
         </main>
     </div>
 </body>
 <script>
-    for (var x of document.querySelectorAll('.message__content .attachments')) {
-        x.addEventListener('click', function (e) {
+    function renderColorBlock(typ) {
+        var element = document.createElement("div");
+        element.classList.add("color", `event-${typ}`);
+        return element;
+    }
+
+    function renderAvatar(profile_url) {
+        var element = document.createElement("div");
+        element.classList.add("avatar");
+        var img = document.createElement("img");
+        img.src = profile_url;
+        element.appendChild(img);
+        return element;
+    }
+
+    function getProfile(data, targetId) {
+        if (targetId < 0) {
+            const profile = data.groups.find(o => {
+                return o.id === -targetId
+            });
+            return { type: "group", profile: profile };
+        } else {
+            const profile = data.profiles.find(o => {
+                return o.id === targetId;
+            });
+            return { type: "user", profile: profile };
+        }
+    }
+
+    function getAvatarUrl(content) {
+        const fromId = content.message.from_id;
+        return getProfile(content, fromId).profile.photo_50;
+    }
+
+    function renderMessageHeader(senderName, date, chatName) {
+        var element = document.createElement("div");
+        element.classList.add("message__header");
+
+        var senderNameElement = document.createElement("span");
+        senderNameElement.classList.add("name");
+        senderNameElement.textContent = senderName;
+
+        var dateElement = document.createElement("span");
+        dateElement.classList.add("date");
+        dateElement.textContent = date;
+
+        var chatNameElement = document.createElement("span");
+        chatNameElement.classList.add("chat");
+        chatNameElement.textContent = chatName;
+
+        element.appendChild(senderNameElement);
+        element.appendChild(dateElement);
+        element.appendChild(chatNameElement);
+
+        return element;
+    }
+
+    function renderMessageContent(message) {
+        var element = document.createElement("div");
+        element.classList.add("message__content");
+
+        element.textContent = message.text.replace(/\n/g, "<br/>");
+
+        if (message.attachments.length == 0) {
+            return element;
+        }
+
+        var attachmentsBtn = document.createElement("div");
+        attachmentsBtn.textContent = "Вложения";
+        attachmentsBtn.classList.add("attachments");
+
+        element.appendChild(attachmentsBtn);
+
+        var attachmentsElement = document.createElement("div");
+        attachmentsElement.classList.add("attachments_content");
+
+        var attachmentsElementContainer = document.createElement("div");
+        attachmentsElementContainer.classList.add("attachments_content_container");
+
+        attachmentsElement.appendChild(attachmentsElementContainer);
+
+        for (const attachment of message.attachments) {
+            if (attachment.type === "photo") {
+                var wrapEl = document.createElement("div");
+                var imgEl = document.createElement("img");
+                wrapEl.appendChild(imgEl);
+                let sizes = attachment.photo.sizes;
+                let url = sizes.sort((a, b) => b.height - a.height)[0].url;
+                imgEl.src = url;
+                imgEl.loading = "lazy";
+                attachmentsElementContainer.appendChild(wrapEl);
+            } else if (attachment.type === "video") {
+                let playerUrl = attachment.video.player;
+                var wrapEl = document.createElement("div");
+                var innerEl = document.createElement("iframe");
+                innerEl.src = playerUrl;
+                wrapEl.appendChild(innerEl);
+                attachmentsElementContainer.appendChild(wrapEl);
+            } else if (attachment.type === "wall") {
+                let url = `https:\/\/vk.com\/wall${attachment.wall.from_id}_${attachment.wall.id}`;
+                var wrapEl = document.createElement("div");
+                var spanEl = document.createElement("span");
+                spanEl.textContent = "Запись на стене:";
+                var innerEl = document.createElement("a");
+                innerEl.href = url;
+                innerEl.textContent = url;
+                wrapEl.appendChild(spanEl);
+                wrapEl.appendChild(innerEl);
+                attachmentsElementContainer.appendChild(wrapEl);
+            } else if (attachment.type === "audio_message") {
+                var wrapEl = document.createElement("div");
+                var audioEl = document.createElement("audio");
+                audioEl.controls = true;
+
+                var sourceMp3 = document.createElement("source");
+                sourceMp3.type = "audio/mpeg";
+                sourceMp3.src = attachment.audio_message.link_mp3;
+
+                var sourceOgg = document.createElement("source");
+                sourceOgg.type = "audio/ogg";
+                sourceOgg.src = attachment.audio_message.link_ogg;
+
+                audioEl.appendChild(sourceMp3);
+                audioEl.appendChild(sourceOgg);
+                wrapEl.appendChild(audioEl);
+                attachmentsElementContainer.appendChild(wrapEl);
+            } else if (attachment.type === "sticker") {
+                var wrapEl = document.createElement("div");
+                var innerEl = document.createElement("img");
+                innerEl.src = attachment.sticker.images.sort((a, b) => b.height - a.height)[0].url;
+                innerEl.loading = "lazy";
+                wrapEl.appendChild(innerEl);
+                attachmentsElementContainer.appendChild(wrapEl);
+            }
+            else {
+                console.log(attachment);
+            }
+        }
+
+        element.appendChild(attachmentsElement);
+        attachmentsBtn.addEventListener("click", function (e) {
             var content = this.nextElementSibling;
             if (content.style.display === "block") {
                 content.style.display = "none";
@@ -97,7 +185,144 @@
                 content.style.display = "block";
             }
         })
+        return element;
     }
+
+    function getSenderName(data) {
+        const senderId = data.message.from_id;
+        const profile = getProfile(data, senderId);
+        if (profile.type === "group") {
+            return profile.profile.name;
+        } else {
+            return `${profile.profile.first_name} ${profile.profile.last_name}`;
+        }
+    }
+
+    function getDate(content) {
+        var date = new Date(content.message.date * 1000);
+        let hours = ('0' + date.getHours()).slice(-2);
+        let minutes = ('0' + date.getMinutes()).slice(-2);
+        let seconds = ('0' + date.getSeconds()).slice(-2);
+
+        let days = ('0' + date.getDate()).slice(-2);
+        let month = ('0' + (date.getMonth() + 1)).slice(-2);
+        let year = date.getFullYear();
+
+
+        return `${hours}:${minutes}:${seconds} ${days}/${month}/${year}`;
+    }
+
+    function getChatName(content) {
+        const peerId = content.message.peer_id;
+        if (peerId > 2000000000) {
+            return `Chat #${peerId - 2000000000}`;
+        }
+        const profile = getProfile(content, peerId);
+        if (profile.profile === undefined) {
+            if (peerId > 0) {
+                return `vk.com/id${peerId}`;
+            }
+            return `vk.com/club${-peerId}`;
+        }
+        if (profile.type === "group") {
+            return profile.profile.name;
+        } else {
+            return `${profile.profile.first_name} ${profile.profile.last_name}`;
+        }
+    }
+
+
+    function renderMessage(data) {
+        var root = document.createElement("div");
+        root.classList.add("message_container");
+        if (typeof data.error !== "undefined") {
+            var messageWrapper = document.createElement("div");
+            messageWrapper.classList.add("message_wrapper", "message_error");
+            messageWrapper.textContent = "unable to render message";
+            root.appendChild(renderColorBlock(data.type));
+            root.appendChild(messageWrapper)
+            return root;
+        }
+
+        var messageWrapper = document.createElement("div");
+        messageWrapper.classList.add("message_wrapper");
+
+        var messageElement = document.createElement("div");
+        messageElement.classList.add("message");
+
+        messageElement.appendChild(renderMessageHeader(getSenderName(data.content), getDate(data.content), getChatName(data.content)));
+        messageElement.appendChild(renderMessageContent(data.content.message));
+
+
+        messageWrapper.appendChild(renderAvatar(getAvatarUrl(data.content)));
+        messageWrapper.appendChild(messageElement);
+
+        root.appendChild(renderColorBlock(data.type));
+        root.appendChild(messageWrapper);
+        return root;
+    }
+
+    (function () {
+        var messagesRoot = document.getElementById("messages");
+
+        var evtSource = new EventSource('/user/sse');
+
+        evtSource.addEventListener("new_message", function (e) {
+            const data = JSON.parse(e.data);
+            var msg = renderMessage({ id: data.MessageId, type: "new", content: data.Message });
+            messagesRoot.prepend(msg);
+        });
+
+        evtSource.addEventListener("edit_message", function (e) {
+            const data = JSON.parse(e.data);
+            var msg = renderMessage({ id: data.MessageId, type: "edit", content: data.Message });
+            messagesRoot.prepend(msg);
+        });
+
+        evtSource.addEventListener("delete_message", function (e) {
+            var data = JSON.parse(e.data);
+            if (data === "error_no_content" || data === "error" || typeof data.content.error !== "undefined" || typeof data.content === "undefined") {
+                var msg = renderMessage({ type: "delete", error: "no_content" });
+            } else {
+                var msg = renderMessage({ id: data.from_id, type: "delete", content: data.content });
+            }
+            messagesRoot.prepend(msg);
+        });
+
+        var lastId = 1000000009;
+        function loadMore() {
+            fetch("/user/event", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "last_id": lastId,
+                }),
+            })
+                .then(r => r.json())
+                .then(r => {
+                    console.log(r);
+                    for (const msg of r) {
+                        if (typeof msg.content.error !== 'undefined') {
+                            var el = renderMessage({ id: msg.id, type: msg.type, error: msg.content.error });
+                        } else {
+                            var el = renderMessage(msg);
+                        }
+                        lastId = msg.id;
+                        messagesRoot.appendChild(el);
+                    }
+                });
+
+        }
+
+        loadMore();
+        var loadMoreBtn = document.getElementById("load_more");
+        loadMoreBtn.addEventListener("click", function (e) {
+            loadMore();
+        })
+    })()
+
 </script>
 <style>
     *,
@@ -111,9 +336,23 @@
         --gray-800: #1f2937;
         --green-600: #16a34a;
         --green-500: #22c55e;
+
+        --bg-main: #f6f6f6;
+
+        --color-deleted: #d64141;
+        --color-edited: #41C4D6;
+        --color-new: #41D697;
+    }
+
+    body {
+        margin: 0;
     }
 
     #root {
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
         display: flex;
     }
 
@@ -122,11 +361,13 @@
         background-color: var(--gray-900);
         color: white;
         box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        position: fixed;
         margin: 0;
         padding: 0;
         width: 4rem;
+        position: fixed;
+        height: 100%;
     }
+
 
     .sidebar-icon {
         background-color: var(--gray-800);
@@ -140,13 +381,6 @@
         transition: all 300ms linear;
         cursor: pointer;
     }
-
-    main {
-        width: 100%;
-    }
-
-
-
 
     .sidebar-tooltip {
         position: absolute;
@@ -168,11 +402,22 @@
     }
 
     @media only screen and (max-width: 600px) {
+        #root {
+            flex-direction: column;
+        }
+
         #sidebar {
             left: 0;
+            margin: 0;
             bottom: 0;
             height: 3rem;
             width: 100%;
+        }
+
+        main {
+            order: -1;
+            width: 100%;
+            margin-bottom: 3rem;
         }
 
         .sidebar-icon {
@@ -186,12 +431,9 @@
 
     }
 
-    @media only screen and (min-width: 600px) {
+    @media only screen and (min-width: 601px) {
         #sidebar {
-            top: 0;
-            left: 0;
             flex-direction: column;
-            height: 100vh;
         }
 
         .sidebar-icon {
@@ -215,22 +457,42 @@
 
         main {
             margin-left: 4rem;
+            width: calc(100% - 4rem);
+            height: 100%;
         }
+
     }
 
     .message_container {
         display: flex;
-        width: clamp(50vw, 600px, 95vw);
+        width: clamp(50vw, 600px, 100vw);
         margin: 0 auto;
     }
 
     .color {
-        background-color: red;
-        width: max(10px, 2rem);
+        width: max(12px, 1rem);
     }
 
-    .avatar {
-        margin-left: 24px;
+    .message_wrapper {
+        width: calc(100% - max(12px, 3rem));
+    }
+
+    .event-delete {
+        background-color: var(--color-deleted);
+    }
+
+    .event-edit {
+        background-color: var(--color-edited);
+    }
+
+    .event-new {
+        background-color: var(--color-new);
+    }
+
+
+    .message_wrapper {
+        margin-left: 8px;
+        display: flex;
     }
 
     .avatar img {
@@ -238,7 +500,11 @@
     }
 
     .message {
-        margin-left: 16px;
+        margin-left: 8px;
+    }
+
+    .message_error {
+        font-style: italic;
     }
 
     .message__header .name {
@@ -291,9 +557,7 @@
     }
 
     .attachments_content_container {
-        display: flex;
         width: 100%;
-        flex-wrap: wrap;
     }
 
     .attachments_content_container * {
@@ -301,14 +565,25 @@
     }
 
     .attachments_content_container div {
+        width: clamp(50%, 600px, 95%);
         max-height: 40vh;
-        flex-grow: 1;
     }
 
     .attachments_content_container div img {
-        height: 100%;
+        width: clamp(50%, 600px, 95%);
+        height: auto;
+        max-height: 40vh;
         object-fit: cover;
         vertical-align: bottom;
+    }
+
+    #load_more {
+        margin: 0 auto;
+        width: clamp(50vw, 600px, 100vw);
+        box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
     }
 </style>
 
