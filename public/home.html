@@ -1,14 +1,316 @@
 {{define "home"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BB | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
 </head>
+
 <body>
-    
+    <div id="root">
+        <div id="sidebar">
+            <div class="sidebar-icon">
+                <i class="fa-solid fa-message"></i>
+                <span class="sidebar-tooltip">
+                    messages
+                </span>
+            </div>
+            <div class="sidebar-icon">
+                <i class="fa-solid fa-gears"></i>
+                <span class="sidebar-tooltip">
+                    settings
+                </span>
+            </div>
+        </div>
+        <main>
+            <div class="message_container">
+                <div class="color"></div>
+                <div class="avatar">
+                    <img src="https://vk.com/images/camera_50.png"
+                        alt="Vladimir Lenin">
+                </div>
+                <div class="message">
+                    <div class="message__header">
+                        <span class="name">Vladimir Lenin</span>
+                        <span class="date">18:05:20 16/05/2022</span>
+                        <span class="chat">Имя чата</span>
+                    </div>
+                    <div class="message__content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras interdum, tortor egestas convallis
+                        pretium, lacus ipsum facilisis dolor, eget pretium est orci non leo. Mauris quis ipsum sed
+                        tellus auctor imperdiet in in urna. Aliquam sit amet accumsan nibh. Pellentesque posuere, magna
+                        id tempor efficitur, enim leo aliquet nulla, ac facilisis justo risus in purus. Sed mollis
+                        euismod eros ac venenatis. Aliquam quis maximus metus, nec fringilla ante. Duis sit amet magna
+                        sed mi pharetra eleifend. Sed vel nisi nunc. Vestibulum ante enim, sodales eget leo eu, feugiat
+                        lacinia nunc. <br>
+                        Praesent venenatis eu lectus rutrum dictum. Nam orci magna, rhoncus sit amet porta ac, cursus
+                        sed eros. Praesent suscipit ante laoreet nibh laoreet, vel condimentum turpis suscipit.
+                        Vestibulum tincidunt semper purus commodo pellentesque. Phasellus eget metus nec leo bibendum
+                        dignissim. In semper venenatis rhoncus. Integer ipsum est, fermentum eget rhoncus a, viverra
+                        eget tortor. Morbi convallis congue suscipit. Ut ultrices hendrerit efficitur. Nulla facilisi.
+                        Sed nec sem ac orci eleifend bibendum vitae eu magna. Donec a ante a ligula posuere iaculis. Sed
+                        et odio ut urna consectetur rhoncus. Quisque semper viverra justo ut faucibus. Suspendisse
+                        ultricies purus et dui ultricies pulvinar. Mauris finibus malesuada suscipit. <br>
+                        Aenean pulvinar, justo vel dapibus consequat, risus urna egestas est, id blandit nulla lacus ut
+                        nisi. Nulla facilisi. Phasellus viverra ipsum ut sagittis aliquam. Curabitur ut enim id est
+                        venenatis laoreet at non felis. In hac habitasse platea dictumst. Pellentesque sed orci pretium,
+                        posuere elit nec, luctus lectus. Fusce tincidunt tellus odio, ac pellentesque sapien volutpat
+                        at. Cras odio augue, accumsan et maximus sit amet, laoreet in felis. Curabitur semper tincidunt
+                        aliquam. Vestibulum a pulvinar purus. Duis vel tellus libero. Donec ut odio vel justo fringilla
+                        egestas. <br>
+                        <div class="attachments">Вложения</div>
+                        <div class="attachments_content">
+                            <div class="attachments_content_container">
+                                <div>
+                                    <img src="https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png"
+                                        alt="">
+                                </div>
+                                <div>
+                                    <img src="https://oboi.ws/filters/vibrance_11_6288_oboi_polosataja_koshka_1280x1024.jpg"
+                                        alt="">
+                                </div>
+                                <div>
+                                    <img src="http://pm1.narvii.com/7881/b72afc82e708932a5a5bf8216a48f38e4c13ac8cr1-1366-2048v2_uhq.jpg"
+                                        alt="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
 </body>
+<script>
+    for (var x of document.querySelectorAll('.message__content .attachments')) {
+        x.addEventListener('click', function (e) {
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        })
+    }
+</script>
+<style>
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :root {
+        --gray-900: #111827;
+        --gray-800: #1f2937;
+        --green-600: #16a34a;
+        --green-500: #22c55e;
+    }
+
+    #root {
+        display: flex;
+    }
+
+    #sidebar {
+        display: flex;
+        background-color: var(--gray-900);
+        color: white;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        position: fixed;
+        margin: 0;
+        padding: 0;
+        width: 4rem;
+    }
+
+    .sidebar-icon {
+        background-color: var(--gray-800);
+        color: var(--green-500);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1.5rem;
+        margin: 0.5rem auto 0.5rem auto;
+        transition: all 300ms linear;
+        cursor: pointer;
+    }
+
+    main {
+        width: 100%;
+    }
+
+
+
+
+    .sidebar-tooltip {
+        position: absolute;
+        width: auto;
+        padding: 0.5rem;
+        margin: 0.5rem;
+        min-width: max-content;
+        left: 3.5rem;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        color: white;
+        background-color: var(--gray-900);
+        font-size: 0.75rem;
+        line-height: 1rem;
+        font-weight: 700;
+        transition: all 100ms linear;
+        transform: scale(0);
+        transform-origin: left;
+    }
+
+    @media only screen and (max-width: 600px) {
+        #sidebar {
+            left: 0;
+            bottom: 0;
+            height: 3rem;
+            width: 100%;
+        }
+
+        .sidebar-icon {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        .sidebar-icon i {
+            font-size: 18pt;
+        }
+
+    }
+
+    @media only screen and (min-width: 600px) {
+        #sidebar {
+            top: 0;
+            left: 0;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .sidebar-icon {
+            height: 3rem;
+            width: 3rem;
+        }
+
+        .sidebar-icon i {
+            font-size: 24pt;
+        }
+
+        .sidebar-icon:hover {
+            background-color: var(--green-600);
+            color: white;
+            border-radius: 0.75rem;
+        }
+
+        .sidebar-icon:hover>.sidebar-tooltip {
+            transform: scale(100%);
+        }
+
+        main {
+            margin-left: 4rem;
+        }
+    }
+
+    .message_container {
+        display: flex;
+        width: clamp(50vw, 600px, 95vw);
+        margin: 0 auto;
+    }
+
+    .color {
+        background-color: red;
+        width: max(10px, 2rem);
+    }
+
+    .avatar {
+        margin-left: 24px;
+    }
+
+    .avatar img {
+        border-radius: 1.5rem;
+    }
+
+    .message {
+        margin-left: 16px;
+    }
+
+    .message__header .name {
+        color: #475569;
+        font-weight: 700;
+    }
+
+    .message__header .date {
+        margin-left: 0.2rem;
+        color: #94A3B8;
+    }
+
+    .message__header .chat {
+        margin-left: 0.2rem;
+        font-style: italic;
+        color: #CBD5E1;
+    }
+
+    .message__content {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        line-height: 18px;
+    }
+
+    .message__content .attachments {
+        margin-top: 5px;
+        cursor: pointer;
+    }
+
+    .message__content .attachments:before {
+        content: '';
+        width: 0;
+        height: 0;
+        border-top: 5px solid transparent;
+        border-left: 10px solid #c4c4c4;
+        border-bottom: 5px solid transparent;
+        border-radius: 0.5rem;
+        display: inline-block;
+        vertical-align: middle;
+        left: 0;
+        right: 0;
+        margin-right: 5px;
+    }
+
+    .attachments_content {
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        display: none;
+    }
+
+    .attachments_content_container {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .attachments_content_container * {
+        box-sizing: border-box;
+    }
+
+    .attachments_content_container div {
+        max-height: 40vh;
+        flex-grow: 1;
+    }
+
+    .attachments_content_container div img {
+        height: 100%;
+        object-fit: cover;
+        vertical-align: bottom;
+    }
+</style>
+
 </html>
 {{end}}
