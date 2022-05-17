@@ -66,6 +66,12 @@ SELECT access_token, vk_user_id
 FROM vk_tokens
 WHERE access_token = $1;
 
+-- name: GetVkUserIdByUserId :one
+SELECT vk_tokens.vk_user_id
+FROM user_tokens
+LEFT JOIN vk_tokens ON user_tokens.access_token = vk_tokens.access_token
+WHERE user_tokens.user_id = $1;
+
 -- name: SaveVkMessage :one
 INSERT INTO vk_messages (
     vk_owner_id, message_id, message
@@ -95,3 +101,11 @@ INSERT INTO vk_activity_events (
 ) VALUES (
     $1, $2, $3, $4, $5, $6
 );
+
+-- name: GetLastMessages :many
+SELECT vk_message_events.id, m_type, msgs.message
+FROM vk_message_events
+LEFT JOIN vk_messages msgs ON internal_message_id = msgs.id
+WHERE vk_owner_id = $1 AND vk_message_events.id < $2
+ORDER BY vk_message_events.id DESC
+LIMIT $3;
