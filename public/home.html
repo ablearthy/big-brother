@@ -21,7 +21,9 @@
                 </span>
             </div>
             <div class="sidebar-icon">
-                <i class="fa-solid fa-gears"></i>
+                <a href="/home/settings">
+                    <i class="fa-solid fa-gears"></i>
+                </a>
                 <span class="sidebar-tooltip">
                     settings
                 </span>
@@ -384,6 +386,11 @@
         margin: 0.5rem auto 0.5rem auto;
         transition: all 300ms linear;
         cursor: pointer;
+    }
+
+    .sidebar-icon a {
+        text-decoration: none;
+        color: inherit;
     }
 
     .sidebar-tooltip {
